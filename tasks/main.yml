@@ -1,0 +1,46 @@
+- name: Create session
+  uri:
+    url: 'https://www.paygonline.com/websc/logon.html'
+    method: GET
+    headers:
+      Origin: https://www.paygonline.com
+  register: cookies
+
+- name: Log on
+  uri:
+    url: 'https://www.paygonline.com/websc/logon.html'
+    method: POST
+    body_format: form-urlencoded
+    body:
+      password: '{{ att_password }}'
+      phoneNumber: '{{ att_phone_number }}'
+    headers:
+      Cookie: '{{ cookies.cookies_string }}'
+      Origin: https://www.paygonline.com
+  register: result
+  failed_when: result.status != 302
+
+- name: Fetch history page
+  uri:
+    url: https://www.paygonline.com/websc/history.html
+    method: GET
+    headers:
+      Cookie: '{{ cookies.cookies_string }}'
+      Origin: https://www.paygonline.com
+
+- name: Get PDF
+  uri:
+    url: 'https://www.paygonline.com/websc/historyrequest.html'
+    method: POST
+    headers:
+      Cookie: '{{ cookies.cookies_string }}'
+      Origin: 'https://www.paygonline.com'
+      Referer: https://www.paygonline.com/websc/history.html
+    body_format: form-urlencoded
+    return_content: true
+    dest: '{{ att_bill_path }}'
+    body:
+      pdfAction: 'true'
+      datefrom: '{{ att_bill_date | month_start }}'
+      dateto: '{{ att_bill_date | month_end }}'
+      historyTypeCode: 'CREDIT_DEBIT_E_CHECK'
