@@ -1,0 +1,5 @@
+---
+att_bill_path: /tmp/attbill.pdf
+att_phone_number: ''
+att_password: ''
+att_bill_date: '{{ ansible_date_time.date | format_date | previous_month }}'
